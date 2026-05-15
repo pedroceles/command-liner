@@ -1,0 +1,23 @@
+{
+  "name": "liner",
+  "version": "0.0.1",
+  "description": "A CLI of CLIs.",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "liner": "./bin/liner"
+  },
+  "scripts": {
+    "liner": "bun run bin/liner",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.7.0",
+    "commander": "^12.1.0",
+    "picocolors": "^1.0.1"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.4.5"
+  }
+}
