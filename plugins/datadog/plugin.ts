@@ -133,6 +133,7 @@ export default definePlugin({
         { name: "to", description: "End time (ISO 8601 or 'now')", takesValue: true },
         { name: "limit", description: "Max results (default 25, max 1000)", takesValue: true },
       ],
+      readonly: true,
       handler: async (ctx) => {
         const creds = await ctx.credentials.require<DatadogCreds>();
         const parsed = parseDatadogLogsUrl(ctx.args.input!);
@@ -166,6 +167,7 @@ export default definePlugin({
       name: "log:read",
       description: "Fetch a single log by id or Datadog UI URL (?event=...)",
       args: [{ name: "input", required: true, description: "Log id or Datadog logs URL with ?event=" }],
+      readonly: true,
       handler: async (ctx) => {
         const creds = await ctx.credentials.require<DatadogCreds>();
         const parsed = parseDatadogLogsUrl(ctx.args.input!);
@@ -243,6 +245,7 @@ export default definePlugin({
           description: "Datadog trace ID (hex) or Rails request ID (UUID, with hyphens)",
         },
       ],
+      readonly: true,
       handler: async (ctx) => {
         const creds = await ctx.credentials.require<DatadogCreds>();
         const id = ctx.args.id!;

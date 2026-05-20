@@ -53,7 +53,15 @@ async function main() {
     .description("A CLI of CLIs.")
     .version("0.0.1")
     .option("--no-json", "human-readable output (default is JSON)")
+    .option("--readonly", "refuse to run commands not marked readonly (for safe allowlists)")
     .enablePositionalOptions();
+
+  const refuseIfReadonly = (label: string) => {
+    if (program.opts().readonly) {
+      console.error(pc.red(`Refusing to run '${label}' under --readonly: command may mutate state.`));
+      process.exit(2);
+    }
+  };
 
   program
     .command("list")
@@ -123,6 +131,7 @@ async function main() {
     .argument("[paths]", "comma-separated target dirs")
     .option("--only <plugins>", "only sync skills from these plugin origins (comma-separated)")
     .action(async (paths: string | undefined, opts: { only?: string }) => {
+      refuseIfReadonly("skills:sync");
       const skills = filterSkills(await loadSkills(plugins), parseOnly(opts.only));
       const results = await syncSkills(skills, parsePathsArg(paths));
       printResults(results);
@@ -134,6 +143,7 @@ async function main() {
     .argument("[paths]", "comma-separated target dirs")
     .option("--only <plugins>", "only unsync skills from these plugin origins (comma-separated)")
     .action(async (paths: string | undefined, opts: { only?: string }) => {
+      refuseIfReadonly("skills:unsync");
       const skills = filterSkills(await loadSkills(plugins), parseOnly(opts.only));
       const results = await unsyncSkills(skills, parsePathsArg(paths));
       printResults(results);
@@ -163,6 +173,9 @@ async function main() {
           args[a.name] = positional[i];
         });
         const programOpts = program.opts();
+        if (programOpts.readonly && !cmd.readonly) {
+          refuseIfReadonly(`${plugin.name} ${cmd.name}`);
+        }
         const subOpts = subCmd.opts();
         const flags = { ...programOpts, ...subOpts, json: programOpts.json !== false && subOpts.json !== false };
         const ctx = createContext({ pluginName: plugin.name, args, flags });

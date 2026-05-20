@@ -61,6 +61,7 @@ export default definePlugin({
     {
       name: "whoami",
       description: "Show the authenticated bot/user",
+      readonly: true,
       handler: async (ctx) => {
         const { token } = await ctx.credentials.require<NotionCreds>();
         const me = await ctx.http.get<NotionUser>(`${BASE}/users/me`, {
@@ -89,6 +90,7 @@ export default definePlugin({
           description: "Include meeting note transcripts in the markdown",
         },
       ],
+      readonly: true,
       handler: async (ctx) => {
         const { token } = await ctx.credentials.require<NotionCreds>();
         const pageId = resolveNotionPageId(ctx.args.page!);

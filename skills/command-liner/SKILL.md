@@ -24,6 +24,11 @@ description: How an agent should discover and invoke liner plugins.
   ```
 - Errors are written to stderr with a non-zero exit code.
 
+## Read-only mode
+
+- Pass `--readonly` (anywhere on the command line) to refuse any command that may mutate state. Read commands (`*:read`, `*:list`, `*:search`, `whoami`, etc.) opt into this; mutating commands (`auth`, `skills:sync`, future writes) do not and will exit non-zero with code 2.
+- Designed so a single allowlist entry (`liner --readonly *`) is safe to auto-approve.
+
 ## Credentials
 
 - Plugins that require auth provide an `auth` subcommand: `liner <plugin> auth`.

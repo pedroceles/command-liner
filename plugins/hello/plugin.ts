@@ -8,6 +8,7 @@ export default definePlugin({
       name: "greet",
       description: "Print a greeting",
       args: [{ name: "name", required: false, description: "who to greet" }],
+      readonly: true,
       handler: (ctx) => {
         const name = ctx.args.name ?? "world";
         if (ctx.json) ctx.output({ message: `Hello, ${name}!` });

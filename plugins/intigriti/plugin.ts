@@ -63,6 +63,7 @@ export default definePlugin({
           takesValue: true,
         },
       ],
+      readonly: true,
       handler: async (ctx) => {
         const accessToken = getAccessToken();
         const stateFilter = ((ctx.flags.state as string | undefined) ?? "triage").toLowerCase();
@@ -96,6 +97,7 @@ export default definePlugin({
       name: "submission:read",
       description: "Read one Intigriti submission by code",
       args: [{ name: "code", required: true, description: "Submission code, e.g. TREMENDOUS-FFIOSYTA" }],
+      readonly: true,
       handler: async (ctx) => {
         const accessToken = getAccessToken();
         const details = await ctx.http.get<SubmissionDetails>(

@@ -15,6 +15,7 @@ export interface PluginCommand {
   description?: string;
   args?: PluginArg[];
   flags?: PluginFlag[];
+  readonly?: boolean;
   handler: (ctx: PluginContext) => Promise<void> | void;
 }
 

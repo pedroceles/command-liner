@@ -88,6 +88,7 @@ export default definePlugin({
     {
       name: "whoami",
       description: "Show the authenticated user",
+      readonly: true,
       handler: async (ctx) => {
         const { token } = await ctx.credentials.require<AsanaCreds>();
         const me = await ctx.http.get<{ data: AsanaUser }>(
@@ -111,6 +112,7 @@ export default definePlugin({
       description: "Read an Asana task by gid or URL",
       args: [{ name: "task", required: true, description: "Task gid or any Asana task URL" }],
       flags: [{ name: "comments", description: "include task comments (stories of type=comment)" }],
+      readonly: true,
       handler: async (ctx) => {
         const { token } = await ctx.credentials.require<AsanaCreds>();
         const taskId = resolveTaskId(ctx.args.task!);
@@ -172,6 +174,7 @@ export default definePlugin({
         { name: "since", description: "completed_since (ISO date or 'now', default: now)", takesValue: true },
         { name: "limit", description: "Page size, 1-100 (default: 50)", takesValue: true },
       ],
+      readonly: true,
       handler: async (ctx) => {
         const { token } = await ctx.credentials.require<AsanaCreds>();
         const workspace = await pickWorkspace(ctx, token, ctx.flags.workspace as string | undefined);
