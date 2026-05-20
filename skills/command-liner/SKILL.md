@@ -1,16 +1,16 @@
 ---
-name: using-liner
+name: command-liner
 description: How an agent should discover and invoke liner plugins.
 ---
 
-# using-liner
+# command-liner
 
 `liner` is a parent CLI that dispatches to plugins. Use it the same way a human would.
 
 ## Discovery
 
 1. `liner list` — lists all installed plugins and their commands.
-2. `liner skills` — lists bundled skills (one per plugin + top-level).
+2. `liner skills` — lists bundled skills. Skills are named `command-liner` (this one) and `liner-<plugin>` (one per plugin).
 3. `liner skills <name>` — prints a specific skill.
 4. `liner <plugin> <command> --help` — shows args/flags for a command.
 

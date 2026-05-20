@@ -1,9 +1,9 @@
 ---
-name: notion
+name: liner-notion
 description: Read Notion pages as markdown from the command line. Use after `liner notion auth`.
 ---
 
-# notion
+# liner-notion
 
 Drive Notion from `liner`. Default output is JSON; pass `--no-json` for human-readable output (the raw markdown is printed to stdout).
 

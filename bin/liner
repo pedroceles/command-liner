@@ -1,2 +1,2 @@
-#!/bin/sh
-exec bun "$(dirname "$0")/../src/cli.ts" "$@"
+#!/usr/bin/env bun
+import "../src/cli.ts";

@@ -4,6 +4,45 @@ import fs from "node:fs/promises";
 import { loadPlugins, loadSkills } from "./loader.ts";
 import { createContext } from "./sdk/context.ts";
 import { HttpError } from "./sdk/http.ts";
+import {
+  syncSkills,
+  unsyncSkills,
+  listSynced,
+  filterSkills,
+  DEFAULT_PATHS,
+  type PathResult,
+} from "./sync.ts";
+
+const statusGlyph = (status: string): string =>
+  status === "created"
+    ? pc.green("+")
+    : status === "updated"
+      ? pc.yellow("~")
+      : status === "removed"
+        ? pc.red("-")
+        : status === "absent"
+          ? pc.dim("·")
+          : status === "skipped"
+            ? pc.red("!")
+            : pc.dim("=");
+
+const printResults = (results: PathResult[]) => {
+  for (const r of results) {
+    console.log(pc.bold(r.path));
+    if (r.skipped) {
+      console.log(`  ${pc.dim(`skipped — ${r.skipped}`)}`);
+      continue;
+    }
+    if (r.links.length === 0) {
+      console.log(`  ${pc.dim("(none)")}`);
+      continue;
+    }
+    for (const link of r.links) {
+      const suffix = link.reason ? pc.dim(` (${link.reason})`) : "";
+      console.log(`  ${statusGlyph(link.status)} ${link.name} → ${link.source}${suffix}`);
+    }
+  }
+};
 
 async function main() {
   const plugins = await loadPlugins();
@@ -39,12 +78,18 @@ async function main() {
       }
     });
 
-  const skillsCmd = program
+  program
     .command("skills")
     .description("list bundled skills, or print one with `liner skills <name>`")
     .argument("[name]", "skill name to print")
-    .action(async (name?: string) => {
+    .option("--synced", "list skills currently synced to default target dirs")
+    .action(async (name: string | undefined, opts: { synced?: boolean }) => {
       const skills = await loadSkills(plugins);
+      if (opts.synced) {
+        const results = await listSynced(skills, DEFAULT_PATHS);
+        printResults(results);
+        return;
+      }
       if (name) {
         const match = skills.find((s) => s.name === name);
         if (!match) {
@@ -63,7 +108,36 @@ async function main() {
         console.log(`${pc.bold(skill.name)} ${pc.dim(`(${skill.origin})`)}`);
       }
     });
-  void skillsCmd;
+
+  const parsePathsArg = (paths?: string): string[] =>
+    paths
+      ? paths.split(",").map((p) => p.trim()).filter(Boolean)
+      : DEFAULT_PATHS;
+
+  const parseOnly = (only?: string): string[] | undefined =>
+    only ? only.split(",").map((p) => p.trim()).filter(Boolean) : undefined;
+
+  program
+    .command("skills:sync")
+    .description("symlink skills into target dirs (default: claude, opencode, cursor, codex)")
+    .argument("[paths]", "comma-separated target dirs")
+    .option("--only <plugins>", "only sync skills from these plugin origins (comma-separated)")
+    .action(async (paths: string | undefined, opts: { only?: string }) => {
+      const skills = filterSkills(await loadSkills(plugins), parseOnly(opts.only));
+      const results = await syncSkills(skills, parsePathsArg(paths));
+      printResults(results);
+    });
+
+  program
+    .command("skills:unsync")
+    .description("remove symlinks previously created by skills:sync")
+    .argument("[paths]", "comma-separated target dirs")
+    .option("--only <plugins>", "only unsync skills from these plugin origins (comma-separated)")
+    .action(async (paths: string | undefined, opts: { only?: string }) => {
+      const skills = filterSkills(await loadSkills(plugins), parseOnly(opts.only));
+      const results = await unsyncSkills(skills, parsePathsArg(paths));
+      printResults(results);
+    });
 
   for (const plugin of plugins) {
     const pluginCmd = program

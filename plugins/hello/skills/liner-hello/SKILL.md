@@ -1,9 +1,9 @@
 ---
-name: hello
+name: liner-hello
 description: Smoke-test plugin to confirm the liner plugin system is working.
 ---
 
-# hello
+# liner-hello
 
 A trivial plugin for verifying that `liner` discovered and registered plugins correctly.
 

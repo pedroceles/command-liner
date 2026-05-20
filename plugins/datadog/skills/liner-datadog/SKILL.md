@@ -1,9 +1,9 @@
 ---
-name: datadog
+name: liner-datadog
 description: Search and read Datadog logs from the command line. Use after `liner datadog auth`.
 ---
 
-# datadog
+# liner-datadog
 
 Read-only access to Datadog logs via the official `@datadog/datadog-api-client` v2 client. Default output is JSON; pass `--no-json` for human-readable output.
 

@@ -1,9 +1,9 @@
 ---
-name: asana
+name: liner-asana
 description: Read Asana tasks from the command line. Use after `liner asana auth`.
 ---
 
-# asana
+# liner-asana
 
 Drive Asana from `liner`. Default output is JSON; pass `--no-json` for human-readable output.
 
