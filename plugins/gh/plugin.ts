@@ -173,6 +173,7 @@ export default definePlugin({
     {
       name: "comments",
       description: "List all comments on a pull request",
+      readonly: true,
       args: [
         {
           name: "pr",
