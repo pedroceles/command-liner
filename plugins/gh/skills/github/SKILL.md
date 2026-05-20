@@ -1,11 +1,13 @@
 ---
 name: github
-description: Read GitHub pull request comments from the command line. Use after `liner gh auth`.
+description: GitHub via liner. Custom commands (comments) plus gh CLI fallthrough. Use after `liner gh auth`.
 ---
 
 # gh
 
-Drive GitHub from `liner`. Default output is JSON; pass `--no-json` for human-readable output.
+GitHub plugin for `liner`. Provides custom commands with enhanced output, and falls through to the `gh` CLI for everything else.
+
+Default output is JSON; pass `--no-json` for human-readable output on custom commands. Fallthrough commands use `gh` CLI output directly.
 
 ## Setup
 
@@ -26,6 +28,16 @@ Drive GitHub from `liner`. Default output is JSON; pass `--no-json` for human-re
 - `'owner/repo#123'` — shorthand (quote it; `#` is a shell comment character)
 - `123 --repo owner/repo` — plain number with explicit repo flag
 
+## gh CLI fallthrough
+
+Any subcommand not defined above is forwarded to the `gh` CLI:
+
+```sh
+liner gh pr view 42 --repo acme/widgets --json title,state
+liner gh issue list --repo acme/widgets
+liner gh repo view acme/widgets
+```
+
 ## Examples
 
 ```sh
@@ -33,6 +45,7 @@ liner gh auth
 liner gh comments https://github.com/acme/widgets/pull/42
 liner gh comments 'acme/widgets#42' --no-json
 liner gh comments 42 --repo acme/widgets
+liner gh pr list --repo acme/widgets
 ```
 
 ## JSON shape

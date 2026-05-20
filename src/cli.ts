@@ -182,6 +182,31 @@ async function main() {
         await cmd.handler(ctx);
       });
     }
+
+    if (plugin.fallthrough) {
+      const bin = plugin.fallthrough;
+      pluginCmd.allowUnknownOption(true);
+      pluginCmd.allowExcessArguments(true);
+      pluginCmd.action(async () => {
+        const knownNames = new Set(plugin.commands.map((c) => c.name));
+        const raw = process.argv.slice(process.argv.indexOf(plugin.name) + 1);
+        if (raw.length === 0 || knownNames.has(raw[0]!)) return;
+        if (program.opts().readonly) {
+          const prefix = raw.slice(0, 2).join(" ");
+          const allowed = plugin.fallthroughReadonly ?? [];
+          if (!allowed.some((a) => prefix === a || raw[0] === a)) {
+            refuseIfReadonly(`${plugin.name} ${raw.join(" ")} (fallthrough to ${bin})`);
+          }
+        }
+        const proc = Bun.spawn([bin, ...raw], {
+          stdin: "inherit",
+          stdout: "inherit",
+          stderr: "inherit",
+        });
+        const code = await proc.exited;
+        process.exit(code);
+      });
+    }
   }
 
   try {

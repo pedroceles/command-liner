@@ -51,6 +51,10 @@ export interface Plugin {
   name: string;
   description?: string;
   commands: PluginCommand[];
+  /** When set, unknown subcommands are forwarded to this CLI binary. */
+  fallthrough?: string;
+  /** Subcommands safe to run in --readonly mode (e.g. ["pr view", "issue view"]). */
+  fallthroughReadonly?: string[];
 }
 
 export function definePlugin(plugin: Plugin): Plugin {

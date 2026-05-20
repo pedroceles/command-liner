@@ -148,7 +148,29 @@ async function fetchResolvedCommentIds(
 
 export default definePlugin({
   name: "gh",
-  description: "GitHub CLI",
+  description: "GitHub CLI (unknown subcommands fall through to gh CLI)",
+  fallthrough: "gh",
+  fallthroughReadonly: [
+    "pr view",
+    "pr list",
+    "pr checks",
+    "pr diff",
+    "pr status",
+    "issue view",
+    "issue list",
+    "issue status",
+    "repo view",
+    "repo list",
+    "release view",
+    "release list",
+    "run view",
+    "run list",
+    "search repos",
+    "search issues",
+    "search prs",
+    "search commits",
+    "api",
+  ],
   commands: [
     {
       name: "auth",
