@@ -147,7 +147,7 @@ async function fetchResolvedCommentIds(
 }
 
 export default definePlugin({
-  name: "github",
+  name: "gh",
   description: "GitHub CLI",
   commands: [
     {
@@ -171,7 +171,7 @@ export default definePlugin({
       },
     },
     {
-      name: "pr:comments",
+      name: "comments",
       description: "List all comments on a pull request",
       args: [
         {

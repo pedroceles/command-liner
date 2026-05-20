@@ -1,9 +1,9 @@
 ---
 name: github
-description: Read GitHub pull request comments from the command line. Use after `liner github auth`.
+description: Read GitHub pull request comments from the command line. Use after `liner gh auth`.
 ---
 
-# github
+# gh
 
 Drive GitHub from `liner`. Default output is JSON; pass `--no-json` for human-readable output.
 
@@ -11,16 +11,16 @@ Drive GitHub from `liner`. Default output is JSON; pass `--no-json` for human-re
 
 1. Create a Personal Access Token at https://github.com/settings/tokens (classic or fine-grained).
 2. The token needs at least the `repo` scope (classic) or read access to pull requests and issues (fine-grained).
-3. Run `liner github auth` and paste the token. It's stored at `~/.config/liner/github/credentials.json` (mode `0600`).
+3. Run `liner gh auth` and paste the token. It's stored at `~/.config/liner/gh/credentials.json` (mode `0600`).
 
 ## Commands
 
-- `liner github auth` — store a GitHub PAT.
-- `liner github pr:comments <pr> [--repo owner/repo]` — fetch all PR comments (conversation, inline review, and review summaries), excluding resolved threads and top-level `cursor[bot]` noise. Sorted chronologically.
+- `liner gh auth` — store a GitHub PAT.
+- `liner gh comments <pr> [--repo owner/repo]` — fetch all PR comments (conversation, inline review, and review summaries), excluding resolved threads and top-level `cursor[bot]` noise. Sorted chronologically.
 
 ## PR reference formats
 
-`pr:comments` accepts any of:
+`comments` accepts any of:
 
 - `https://github.com/owner/repo/pull/123` — full PR URL
 - `'owner/repo#123'` — shorthand (quote it; `#` is a shell comment character)
@@ -29,15 +29,15 @@ Drive GitHub from `liner`. Default output is JSON; pass `--no-json` for human-re
 ## Examples
 
 ```sh
-liner github auth
-liner github pr:comments https://github.com/acme/widgets/pull/42
-liner github pr:comments 'acme/widgets#42' --no-json
-liner github pr:comments 42 --repo acme/widgets
+liner gh auth
+liner gh comments https://github.com/acme/widgets/pull/42
+liner gh comments 'acme/widgets#42' --no-json
+liner gh comments 42 --repo acme/widgets
 ```
 
 ## JSON shape
 
-`pr:comments` returns an array of unified comment objects sorted by `created_at`:
+`comments` returns an array of unified comment objects sorted by `created_at`:
 
 ```json
 [
