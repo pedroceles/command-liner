@@ -30,6 +30,41 @@ function renderLogLine(log: v2.Log): string {
   return `${ts}  ${status.padEnd(5)}  ${svc}  ${host}  ${message}`;
 }
 
+interface DatadogSpan {
+  id?: string;
+  type?: string;
+  attributes?: {
+    trace_id?: string;
+    span_id?: string;
+    service?: string;
+    resource?: string;
+    resource_name?: string;
+    duration?: number;
+    custom?: { duration?: number };
+    status?: string;
+    timestamp?: string;
+    start_timestamp?: string;
+  };
+}
+
+function formatDurationNs(ns: number): string {
+  if (ns >= 1_000_000_000) return `${(ns / 1_000_000_000).toFixed(2)}s`;
+  if (ns >= 1_000_000) return `${(ns / 1_000_000).toFixed(2)}ms`;
+  if (ns >= 1_000) return `${(ns / 1_000).toFixed(2)}µs`;
+  return `${ns}ns`;
+}
+
+function renderSpan(span: DatadogSpan): string {
+  const a = span.attributes ?? {};
+  const timestamp = a.start_timestamp ?? a.timestamp ?? "?";
+  const service = a.service ?? "unknown";
+  const resource = a.resource_name ?? a.resource ?? "unknown";
+  const durationNs = a.custom?.duration ?? a.duration ?? 0;
+  const status = a.status ?? "ok";
+  const spanId = a.span_id ?? "N/A";
+  return `[${timestamp}] [${status.toUpperCase()}] [${service}] ${resource}\n  Duration: ${formatDurationNs(durationNs)} | Span ID: ${spanId}`;
+}
+
 function renderLogDetail(log: v2.Log): string {
   const a = log.attributes ?? {};
   const lines: string[] = [];
@@ -53,7 +88,7 @@ function renderLogDetail(log: v2.Log): string {
 
 export default definePlugin({
   name: "datadog",
-  description: "Datadog CLI (logs)",
+  description: "Datadog CLI (logs + traces)",
   commands: [
     {
       name: "auth",
@@ -196,6 +231,82 @@ export default definePlugin({
           return;
         }
         ctx.output(renderLogDetail(match));
+      },
+    },
+    {
+      name: "trace:read",
+      description: "Read all spans for a Datadog trace (by trace-id or request-id)",
+      args: [
+        {
+          name: "id",
+          required: true,
+          description: "Datadog trace ID (hex) or Rails request ID (UUID, with hyphens)",
+        },
+      ],
+      handler: async (ctx) => {
+        const creds = await ctx.credentials.require<DatadogCreds>();
+        const id = ctx.args.id!;
+        const apiBase = `https://api.${creds.site}`;
+        const headers = {
+          "DD-API-KEY": creds.apiKey,
+          "DD-APPLICATION-KEY": creds.appKey,
+        };
+
+        const searchSpans = async (query: string, limit = 100): Promise<DatadogSpan[]> => {
+          const res = await ctx.http.post<{ data?: DatadogSpan[] }>(
+            `${apiBase}/api/v2/spans/events/search`,
+            {
+              data: {
+                type: "search_request",
+                attributes: {
+                  filter: { query, from: "now-15d", to: "now" },
+                  page: { limit },
+                  sort: "timestamp",
+                },
+              },
+            },
+            { headers },
+          );
+          return res.data ?? [];
+        };
+
+        // UUIDs contain hyphens; Datadog trace IDs are pure hex.
+        const isRequestId = id.includes("-");
+        let traceId = id;
+
+        if (isRequestId) {
+          const matches = await searchSpans(
+            `@http.response.headers.x-request-id:${id}`,
+            1,
+          );
+          if (matches.length === 0) {
+            console.error(
+              `No trace found for request ID: ${id} (may be past Datadog's 15-day span retention).`,
+            );
+            process.exit(1);
+          }
+          const found = matches[0]?.attributes?.trace_id;
+          if (!found) {
+            console.error("Found matching span but could not extract trace_id.");
+            process.exit(1);
+          }
+          traceId = found;
+        }
+
+        const spans = await searchSpans(`trace_id:${traceId}`);
+        if (spans.length === 0) {
+          console.error(
+            `No spans found for trace ID: ${traceId} (may be past Datadog's 15-day span retention).`,
+          );
+          process.exit(1);
+        }
+
+        if (ctx.json) {
+          ctx.output(spans);
+          return;
+        }
+        const header = `Found ${spans.length} span${spans.length === 1 ? "" : "s"} for trace ${traceId}:`;
+        ctx.output([header, "", ...spans.map(renderSpan)].join("\n"));
       },
     },
   ],
